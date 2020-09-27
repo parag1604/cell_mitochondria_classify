@@ -15,12 +15,15 @@ def main(mode):
     if mode == 1:
         command = "python preprocess.py setting.json"
     elif mode == 2:
-        command = "python classify.py settings.json"
+        command = "python train.py settings.json"
     else:
         print("INVALID MODE OPTION PROVIDED")
         print("VALID:\nMODE 1 - PREPROCESS\nMODE 2 - CLASSIFY")
         sys.exit(2)
-    os.system()
+    code = os.system(command)
+    if code != 0:
+        print("ERROR OCCURRED")
+        sys.exit(code)
 
 if __name__ == "__main__":
     main(check_and_get_system_args())
