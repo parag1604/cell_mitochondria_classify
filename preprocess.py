@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 ##################################
 
 def check_and_get_system_args():
-    if len(sys.argv) == 4:
-        return sys.argv[1:]
-    print("Usage: python run.py <settings_file.json> <mode> <clean=0|1>")
+    if len(sys.argv) == 2:
+        return sys.argv[1]
+    print("Usage: python preprocess <settings_file.json>")
     sys.exit(1)
 
 def clean_image(im, thresh=0.0005):
@@ -30,7 +30,7 @@ def clean_image(im, thresh=0.0005):
             break
     return im[i:j,k:l]
 
-def get_image_sum(path, clean, thresh=0.8):
+def get_image_sum(path, clean, thresh=1):
     img = tifffile.imread(path)
     im = np.sum(img.astype(np.float32), axis=0)
     im = (im - np.min(im)) / (thresh * (np.max(im) - np.min(im)))
@@ -39,7 +39,7 @@ def get_image_sum(path, clean, thresh=0.8):
         im = clean_image(im, 0.0005)
     return im
 
-def get_image_max(path, clean, thresh=0.8):
+def get_image_max(path, clean, thresh=1):
     img = tifffile.imread(path)
     im = np.max(img.astype(np.float32), axis=0)
     im = (im - np.min(im)) / (thresh * (np.max(im) - np.min(im)))
@@ -48,34 +48,31 @@ def get_image_max(path, clean, thresh=0.8):
         im = clean_image(im, 0.001)
     return im
 
-def main(args):
-    json_file_name = args[0]
-    mode = args[1]
-    clean = int(args[2])
+def main(json_file_name):
+
     with open(json_file_name,) as json_file:
         ctx = json.load(json_file)
     home = ctx["raw_data_path"]
     outdir = ctx["images_path"]
+    mode = ctx["preprocess_mode"]
+    clean = ctx["preprocess_crop"]
+    cutoff_thresh = ctx["preprocess_threshold"]
     if 'data' in os.listdir('./'):
         shutil.rmtree('data/')
     os.mkdir('data')
-    # t1 = "1. Fragmented"
-    # t2 = '190801-HEK293-mOr_dmso-2h50m.nd2 - 190801-HEK293-mOr_dmso-2h50m.nd2 (series 03)-1.tif'
-    # if mode == "max":
-    #     im = get_image_max(os.path.join(home, t1, t2), clean)
-    # elif mode == "sum":
-    #     im = get_image_sum(os.path.join(home, t1, t2), clean)
-    # plt.imshow(im, cmap="gray")
-    # plt.show()
+
     i = 0
     for category in os.listdir(home):
         os.mkdir('data/'+category)
         for image in os.listdir(os.path.join(home, category)):
             i += 1
             if mode == "max":
-                im = get_image_max(os.path.join(home, category, image), clean)
+                im = get_image_max(os.path.join(home, category, image),
+                                   clean, cutoff_thresh)
             elif mode == "sum":
-                im = get_image_sum(os.path.join(home, category, image), clean)
+                im = get_image_sum(os.path.join(home, category, image),
+                                   clean, cutoff_thresh)
+            im = np.array(im * 255, dtype=np.uint8)
             io.imsave(outdir+"/"+category+"/"+str(i)+".bmp", im)
 
 if __name__ == "__main__":

@@ -1,4 +1,7 @@
 {
   "raw_data_path": "../dataset/Annotated Images - 200306/100X",
-  "images_path": "data"
+  "images_path": "data",
+  "preprocess_mode" : "max",
+  "preprocess_threshold" : 0.8,
+  "preprocess_crop" : 1
 }

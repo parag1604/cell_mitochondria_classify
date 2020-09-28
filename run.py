@@ -13,7 +13,7 @@ def check_and_get_system_args():
 
 def main(mode):
     if mode == 1:
-        command = "python preprocess.py setting.json"
+        command = "python preprocess.py settings.json"
     elif mode == 2:
         command = "python train.py settings.json"
     else:
